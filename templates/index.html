@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc-daygrid-day.fc-day-today {
+            background-color: #e0f7fa !important;
+        }
+    
+        .fc-event-title {
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>Task Management System</h1>
+    </nav>
+
+    <div class="container">
+        <form action="/add" method="POST" class="task-form">
+            <input type="text" name="task" placeholder="Enter task" required>
+            <input type="date" name="deadline" required>
+            <select name="priority">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
+            <button type="submit">Add Task</button>
+        </form>
+
+        <ul class="task-list">
+            {% for task in tasks %}
+                <li class="task-item {{ task.priority.lower() }} {% if task.done %}done{% endif %}">
+                    {% if edit_index == loop.index0 %}
+                        <form action="/edit/{{ loop.index0 }}" method="POST" class="edit-form">
+                            <input type="text" name="task" value="{{ task.task }}" required>
+                            <input type="date" name="deadline" value="{{ task.deadline }}" required>
+                            <select name="priority">
+                                <option value="Low" {% if task.priority == "Low" %}selected{% endif %}>Low</option>
+                                <option value="Medium" {% if task.priority == "Medium" %}selected{% endif %}>Medium</option>
+                                <option value="High" {% if task.priority == "High" %}selected{% endif %}>High</option>
+                            </select>
+                            <button type="submit" class="btn update-btn">Update</button>
+                            <form action="{{ url_for('cancel') }}" method="get" style="display: inline;">
+                                <button type="submit" class="btn cancel-btn">Cancel</button>
+                            </form>                            
+                        </form>
+                    {% else %}
+                        <span>{{ task.task }} - Due: {{ task.deadline }}</span>
+                        <div class="task-actions">
+                            {% if not task.done %}
+                                <a href="/complete/{{ loop.index0 }}" class="btn complete-btn">Complete</a>
+                            {% else %}
+                                <a href="/complete/{{ loop.index0 }}" class="btn undo-btn">Undo</a>
+                            {% endif %}
+                            <a href="/edit/{{ loop.index0 }}" class="btn edit-btn">Edit</a>
+                            <a href="/delete/{{ loop.index0 }}" class="btn delete-btn">Delete</a>
+                        </div>                                                
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        
+
+        <!-- <ul class="task-list">
+            {% for task in tasks %}
+                <li class="task-item {{ task.priority.lower() }} {% if task.done %}done{% endif %}">
+                    <span>{{ task.task }} ({{ task.priority }}) - Due: {{ task.deadline }}</span>
+                    <div class="task-actions">
+                        {% if not task.done %}
+                            <a href="/complete/{{ loop.index0 }}" class="btn complete-btn">Completed</a>
+                        {% endif %}
+                        <a href="/delete/{{ loop.index0 }}" class="btn delete-btn">Delete</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul> -->
+        
+
+        <!-- <ul class="task-list">
+            {% for task in tasks %}
+                <li class="{% if task.done %}done{% endif %}">
+                    <span>{{ task.task }} ({{ task.priority }}) - Due: {{ task.deadline }}</span>
+                    <div class="actions">
+                        {% if not task.done %}
+                        <a href="/complete/{{ loop.index0 }}">✔️</a>
+                        {% endif %}
+                        <a href="/delete/{{ loop.index0 }}">🗑️</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul> -->
+
+        <div id="calendar"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        const taskEvents = {{ tasks|tojson }};
+        // window.taskEvents = {{ tasks|tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
